@@ -106,21 +106,11 @@ public class ThemeChooser extends Activity {
         // If it's an orientation change and not a theme change,
         // re-inflate ThemeChooser with its new resources
         if (!finishing) {
-            // re-inflating will cause our list positions and selections
-            // to be lost, so request all Views in the window save their
-            // instance state first.
-            Bundle state = new Bundle();
-            onSaveInstanceState(state);
-
             // Set the adapter null, so that on reinflating mGallery,
             // the previous mDataSetObserver gets unregistered, and we
             // don't leak a reference to the gallery on each config change.
             mGallery.setAdapter(null);
             inflateActivity();
-
-            // Now have window restore previous instance state... just as
-            // though it went through onDestroy/onCreate process.
-            onRestoreInstanceState(state);
         }
     }
 
@@ -157,7 +147,14 @@ public class ThemeChooser extends Activity {
                 builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.dialog_theme_error_title);
                 builder.setMessage(R.string.dialog_missing_theme_package_scope_msg);
-                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setPositiveButton(R.string.dialog_apply_anyway_btn, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        int selectedPos = mGallery.getSelectedItemPosition();
+                        ThemeItem item = (ThemeItem)mGallery.getItemAtPosition(selectedPos);
+                        doApply(item);
+                    }
+                });
+                builder.setNegativeButton(R.string.dialog_bummer_btn, null);
                 return builder.create();
             default:
                 return mChangeHelper.dispatchOnCreateDialog(id);
